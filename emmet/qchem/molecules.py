@@ -4,7 +4,7 @@ from itertools import chain, groupby
 import numpy as np
 import networkx as nx
 
-from pymatgen import Molecule
+from pymatgen.core.structure import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
 
@@ -64,10 +64,10 @@ class MoleculesBuilder(Builder):
             generator or list relevant tasks and molecules to process into molecules documents
         """
 
-        self.logger.info("Molecules builder started")
-        self.logger.info("Allowed task types: {}".format(self.allowed_tasks))
+        print("Molecules builder started")
+        print("Allowed task types: {}".format(self.allowed_tasks))
 
-        self.logger.info("Setting indexes")
+        print("Setting indexes")
         self.ensure_indexes()
 
         # Save timestamp for update operation
@@ -75,28 +75,28 @@ class MoleculesBuilder(Builder):
 
         # Get all processed tasks:
         q = dict(self.query)
-        q["state"] = "successful"
+        # q["state"] = "successful"
 
-        self.logger.info("Finding tasks to process")
+        print("Finding tasks to process")
         all_tasks = set(self.tasks.distinct("task_id", q))
         processed_tasks = set(self.molecules.distinct("task_ids"))
         to_process_tasks = all_tasks - processed_tasks
         to_process_forms = self.tasks.distinct(
             "formula_pretty", {"task_id": {"$in": list(to_process_tasks)}}
         )
-        self.logger.info("Found {} unprocessed tasks".format(len(to_process_tasks)))
-        self.logger.info("Found {} unprocessed formulas".format(len(to_process_forms)))
+        print("Found {} unprocessed tasks".format(len(to_process_tasks)))
+        print("Found {} unprocessed formulas".format(len(to_process_forms)))
 
         # Tasks that have been updated since we last viewed them
         update_q = dict(q)
         update_q.update(self.tasks.lu_filter(self.molecules))
         updated_forms = self.tasks.distinct("formula_pretty", update_q)
-        self.logger.info(
+        print(
             "Found {} updated systems to process".format(len(updated_forms))
         )
 
         forms_to_update = set(updated_forms) | set(to_process_forms)
-        self.logger.info("Processing {} total systems".format(len(forms_to_update)))
+        print("Processing {} total systems".format(len(forms_to_update)))
         self.total = len(forms_to_update)
 
         if self.task_types:
@@ -165,10 +165,10 @@ class MoleculesBuilder(Builder):
             item.update({"_bt": self.timestamp})
 
         if len(items) > 0:
-            self.logger.info("Updating {} molecules".format(len(items)))
+            print("Updating {} molecules".format(len(items)))
             self.molecules.update(docs=items)
         else:
-            self.logger.info("No items to update")
+            print("No items to update")
 
     def make_mol(self, task_group):
         """
@@ -413,9 +413,7 @@ def group_molecules(molecules):
         subgroups = []
         for mol in pregroup:
             mol_graph = MoleculeGraph.with_local_env_strategy(mol,
-                                                              OpenBabelNN(),
-                                                              reorder=False,
-                                                              extend_structure=False)
+                                                              OpenBabelNN())
             if nx.is_connected(mol_graph.graph.to_undirected()):
                 matched = False
                 for subgroup in subgroups:

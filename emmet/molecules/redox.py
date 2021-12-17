@@ -4,7 +4,7 @@ from itertools import chain, groupby
 import numpy as np
 import networkx as nx
 
-from pymatgen import Molecule
+from pymatgen.core.structure import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
 
@@ -46,9 +46,9 @@ class RedoxBuilder(Builder):
             generator of relevant entries from one formula_alphabetical
         """
 
-        self.logger.info("Redox builder started")
+        print("Redox builder started")
 
-        self.logger.info("Setting indexes")
+        print("Setting indexes")
         self.ensure_indexes()
 
         # Save timestamp for update operation
@@ -73,7 +73,7 @@ class RedoxBuilder(Builder):
 
         forms = updated_forms | new_forms | new_mol_forms
 
-        self.logger.info(
+        print(
             "Found {} formulae with new/updated molecules".format(len(forms))
         )
         self.total = len(forms)
@@ -170,10 +170,10 @@ class RedoxBuilder(Builder):
             item.update({"_bt": self.timestamp})
 
         if len(items) > 0:
-            self.logger.info("Updating {} redox documents".format(len(items)))
+            print("Updating {} redox documents".format(len(items)))
             self.redox.update(docs=items, key=[self.redox.key])
         else:
-            self.logger.info("No items to update")
+            print("No items to update")
 
     def ensure_indexes(self):
         """
@@ -200,7 +200,7 @@ class RedoxBuilder(Builder):
             a set of entries for this system
         """
 
-        self.logger.info("Getting entries for: {}".format(formula_alphabetical))
+        print("Getting entries for: {}".format(formula_alphabetical))
         new_q = dict(self.query)
         new_q["formula_alphabetical"] = formula_alphabetical
         new_q["deprecated"] = False
@@ -224,7 +224,7 @@ class RedoxBuilder(Builder):
         ]
         all_entries = list(self.molecules.query(properties=fields, criteria=new_q))
 
-        self.logger.info("Total entries in {} : {}".format(formula_alphabetical, len(all_entries)))
+        print("Total entries in {} : {}".format(formula_alphabetical, len(all_entries)))
 
         return all_entries
 
@@ -238,9 +238,7 @@ def group_molecules_and_sort_by_charge(molecules):
     for mol_dict in molecules:
         mol = Molecule.from_dict(mol_dict["molecule"])
         mol_graph = MoleculeGraph.with_local_env_strategy(mol,
-                                                          OpenBabelNN(),
-                                                          reorder=False,
-                                                          extend_structure=False)
+                                                          OpenBabelNN())
         if nx.is_connected(mol_graph.graph.to_undirected()):
             matched = False
             for group in groups:

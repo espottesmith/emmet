@@ -7,9 +7,7 @@ from itertools import chain, groupby
 import numpy as np
 import networkx as nx
 
-from pymatgen import Molecule
-from pymatgen.analysis.graphs import MoleculeGraph
-from pymatgen.analysis.local_env import OpenBabelNN
+from pymatgen.core.structure import Molecule
 from pymatgen.io.babel import BabelMolAdaptor
 from pymatgen.io.xyz import XYZ
 from pymatgen.symmetry.analyzer import PointGroupAnalyzer
@@ -53,9 +51,9 @@ class WebsiteMoleculesBuilder(Builder):
             generator of relevant entries from one formula_alphabetical
         """
 
-        self.logger.info("Website molecules builder started")
+        print("Website molecules builder started")
 
-        self.logger.info("Setting indexes")
+        print("Setting indexes")
         self.ensure_indexes()
 
         # Save timestamp for update operation
@@ -63,7 +61,7 @@ class WebsiteMoleculesBuilder(Builder):
 
         redox_task_ids = self.redox.distinct(self.redox.key, {"$or":[{"redox.IE":{"$exists":1}}, {"redox.EA":{"$exists":1}}]})
 
-        self.logger.info(
+        print(
             "Found {} molecules with redox properties".format(len(redox_task_ids))
         )
         self.total = len(redox_task_ids)
@@ -184,10 +182,10 @@ class WebsiteMoleculesBuilder(Builder):
             item.update({"_bt": self.timestamp})
 
         if len(items) > 0:
-            self.logger.info("Updating {} website documents".format(len(items)))
+            print("Updating {} website documents".format(len(items)))
             self.website.update(docs=items, key=[self.website.key])
         else:
-            self.logger.info("No items to update")
+            print("No items to update")
 
     def ensure_indexes(self):
         """
@@ -211,7 +209,7 @@ class WebsiteMoleculesBuilder(Builder):
 
 # The two functions below were taken directly from Rubicon
 def xyz2svg(xyz):
-    babel_cmd = shlex.split("babel -ixyz -osvg")
+    babel_cmd = shlex.split("obabel -ixyz -osvg")
     p = subprocess.Popen(babel_cmd,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
