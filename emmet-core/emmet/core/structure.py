@@ -173,6 +173,11 @@ class MoleculeMetadata(EmmetBaseModel):
         title="Alphabetical Formula",
         description="Alphabetical molecular formula",
     )
+    species: List[str] = Field(
+        None,
+        title="Species",
+        description="List of elements in the molecule"
+    )
     chemsys: str = Field(
         None,
         title="Chemical System",
@@ -202,10 +207,12 @@ class MoleculeMetadata(EmmetBaseModel):
                 "formula_alphabetical",
                 "chemsys",
                 "symmetry",
+                "species",
             ]
             if fields is None
             else fields
         )
+        species = meta_molecule.species
         comp = meta_molecule.composition
         elsyms = sorted(set([e.symbol for e in comp.elements]))
         symmetry = PointGroupData.from_molecule(meta_molecule)
@@ -220,6 +227,7 @@ class MoleculeMetadata(EmmetBaseModel):
             "formula_alphabetical": comp.alphabetical_formula,
             "chemsys": "-".join(elsyms),
             "symmetry": symmetry,
+            "species": species
         }
 
         return cls(**{k: v for k, v in data.items() if k in fields}, **kwargs)

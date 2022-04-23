@@ -126,6 +126,11 @@ class MoleculeDoc(CoreMoleculeDoc, MoleculeMetadata):
         description="List of MPIDs with of molecules similar (by e.g. structure) to this one",
     )
 
+    species: List[str] = Field(
+        None,
+        description="List of elements in molecule (in same order as molecule Sites)"
+    )
+
     @classmethod
     def from_tasks(
         cls,

@@ -46,11 +46,15 @@ class SummaryDoc(PropertyDoc):
     task_ids: List[MPID] = Field(
         [],
         title="Calculation IDs",
-        description="List of Calculation IDs associated with this molecule.",
+        description="List of Calculation IDs associated with this molecule."
     )
 
     similar_molecules: List[MPID] = Field(
         [], description="IDs associated with similar molecules"
+    )
+
+    species: List[str] = Field(
+        [], description="List of elements in this molecule."
     )
 
     # thermo
