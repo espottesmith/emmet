@@ -20,10 +20,7 @@ __author__ = "Evan Spotte-Smith <ewcspottesmith@lbl.gov>"
 
 SETTINGS = EmmetSettings()
 BOND_METHODS = ["nbo", "critic2", "OpenBabelNN + metal_edge_extender"]
-
 metals = SETTINGS.METALS
-coordinators = SETTINGS.COORDINATORS
-metal_edge_cutoff = SETTINGS.COORD_CUTOFF
 
 
 def fix_C_Li_bonds(critic: Dict) -> Dict:
@@ -49,6 +46,7 @@ def fix_C_Li_bonds(critic: Dict) -> Dict:
                     [int(entry) - 1 for entry in critic["bonding"][key]["atom_ids"]]
                 )
     return critic
+
 
 def _bonds_hybridization(nbo: Dict[str, Any], index: int):
     """
