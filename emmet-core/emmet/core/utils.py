@@ -160,7 +160,12 @@ def make_mol_graph(
     :return: mol_graph, a MoleculeGraph
     """
     mol_graph = MoleculeGraph.with_local_env_strategy(mol, OpenBabelNN())
-    mol_graph = metal_edge_extender(mol_graph)
+    mol_graph = metal_edge_extender(
+        mol_graph,
+        metals=SETTINGS.METALS,
+        coordinators=SETTINGS.COORDINATORS,
+        cutoff=SETTINGS.COORD_CUTOFF,
+    )
     if critic_bonds:
         mg_edges = mol_graph.graph.edges()
         for bond in critic_bonds:

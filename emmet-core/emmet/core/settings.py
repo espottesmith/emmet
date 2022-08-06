@@ -61,20 +61,20 @@ class EmmetSettings(BaseSettings):
         description="Maximum miller allowed for computing strain direction for maximal piezo response",
     )
 
-    METALS: set = Field(
-        {"Li", "Mg", "Ca", "Zn", "B", "Al"},
+    METALS: list = Field(
+        ["Li", "Na", "K", "Mg", "Ca", "Zn", "B", "Al"],
         description="Species considered metals by metal_edge_extender for the purpose of "
                     "identifying missed coordinate bonds.",
     )
 
-    COORDINATORS: set = Field(
-        {"O", "N", "F", "S", "Cl"},
+    COORDINATORS: list = Field(
+        ["O", "N", "F", "S", "Cl"],
         description="Coordinating species considered by metal_edge_extender when "
                     "identifying missed coordinate bonds.",
     )
 
     COORD_CUTOFF: float = Field(
-        2.5,
+        4.5,
         description="Cutoff in Angstrom used by metal_edge_extender to determine"
         "missing coordination bonds",
     )
