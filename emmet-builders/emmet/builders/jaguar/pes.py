@@ -182,11 +182,12 @@ class PESPointBuilder(Builder):
 
         processed_tasks = set(self.minima.distinct("task_ids"))
         to_process_tasks = {d[self.tasks.key] for d in all_tasks} - processed_tasks
-        to_process_hashes = {
-            d["species_hash"]
-            for d in all_tasks
-            if d[self.tasks.key] in to_process_tasks
-        }
+        to_process_hashes = set()
+        for d in all_tasks:
+            if d[self.tasks.key] in to_process_tasks:
+                hash = d.get("species_hash")
+                if hash:
+                    to_process_hashes.add(hash)
 
         N = ceil(len(to_process_forms) / number_splits)
 
@@ -225,11 +226,12 @@ class PESPointBuilder(Builder):
 
         processed_tasks = set(self.minima.distinct("task_ids"))
         to_process_tasks = {d[self.tasks.key] for d in all_tasks} - processed_tasks
-        to_process_hashes = {
-            d["species_hash"]
-            for d in all_tasks
-            if d[self.tasks.key] in to_process_tasks
-        }
+        to_process_hashes = set()
+        for d in all_tasks:
+            if d[self.tasks.key] in to_process_tasks:
+                hash = d.get("species_hash")
+                if hash:
+                    to_process_hashes.add(hash)
 
         self.logger.info(f"Found {len(to_process_tasks)} unprocessed tasks")
         self.logger.info(f"Found {len(to_process_hashes)} unprocessed structures")
