@@ -189,7 +189,7 @@ class PESPointBuilder(Builder):
                 if hash:
                     to_process_hashes.add(hash)
 
-        N = ceil(len(to_process_forms) / number_splits)
+        N = ceil(len(to_process_hashes) / number_splits)
 
         for hash_chunk in grouper(to_process_hashes, N):
             yield {"query": {"species_hash": {"$in": list(hash_chunk)}}}
