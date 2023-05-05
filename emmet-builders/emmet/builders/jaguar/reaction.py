@@ -171,11 +171,11 @@ class ReactionAssociationBuilder(Builder):
 
         super().__init__(sources=[tasks, transition_states, minima], targets=[assoc], **kwargs)
         # Uncomment in case of issue with mrun not connecting automatically to collections
-        # for i in [self.tasks, self.transition_states, self.minima, self.assoc]:
-        #     try:
-        #         i.connect()
-        #     except Exception as e:
-        #         print("Could not connect,", e)
+        for i in [self.tasks, self.transition_states, self.minima, self.assoc]:
+            try:
+                i.connect()
+            except Exception as e:
+                print("Could not connect,", e)
 
     def ensure_indexes(self):
         """
@@ -201,13 +201,13 @@ class ReactionAssociationBuilder(Builder):
         self.minima.ensure_index("species_hash_nometal")
 
         # Search index for ts
-        self.ts.ensure_index("molecule_id")
-        self.ts.ensure_index("last_updated")
-        self.ts.ensure_index("task_ids")
-        self.ts.ensure_index("formula_alphabetical")
-        self.ts.ensure_index("coord_hash")
-        self.ts.ensure_index("species_hash")
-        self.ts.ensure_index("species_hash_nometal")
+        self.transition_states.ensure_index("molecule_id")
+        self.transition_states.ensure_index("last_updated")
+        self.transition_states.ensure_index("task_ids")
+        self.transition_states.ensure_index("formula_alphabetical")
+        self.transition_states.ensure_index("coord_hash")
+        self.transition_states.ensure_index("species_hash")
+        self.transition_states.ensure_index("species_hash_nometal")
 
         # Search index for reactions
         self.assoc.ensure_index("reaction_id")
@@ -320,18 +320,21 @@ class ReactionAssociationBuilder(Builder):
 
         ts_mol = Molecule.from_dict(ts.freq_entry["output"]["molecule"])  # type: ignore
         ts_name = ts.freq_entry["name"]
+        if ts_name is None:
+            task = self.tasks.query_one({"calcid": int(ts.freq_entry["calcid"])})
+            ts_name = task["name"]
         for_name = ts_name + " forwards"
         rev_name = ts_name + " reverse"
         ts_mol_coords = ts_mol.cart_coords  # type: ignore
-        transition_mode = ts.vibrational_frequency_modes[0]
-        transition_array = np.array(transition_mode)
-        transition_mode_normalized = (
-            transition_array / transition_array.sum(axis=1)[:, np.newaxis]
-        )
+        # transition_mode = ts.vibrational_frequency_modes[0]
+        # transition_array = np.array(transition_mode)
+        # transition_mode_normalized = (
+        #     transition_array / transition_array.sum(axis=1)[:, np.newaxis]
+        # )
 
         ts_freq_lot = ts.freq_entry["level_of_theory"]
 
-        possible_minima = list(
+        possible = list(
             self.minima.query(
                 {
                     "formula_alphabetical": ts.formula_alphabetical,
@@ -342,30 +345,49 @@ class ReactionAssociationBuilder(Builder):
                 }
             )
         )
-        poss_min_docs = [PESMinimumDoc(**d) for d in possible_minima]
+        self.logger.debug(f"LENGTH OF POSSIBLE: {len(possible)}")
 
-        reverse_minima = list()
+        # TODO: add in names (short-term hack, hopefully)
+
+        poss_for_docs = list()
+        poss_rev_docs = list()
+        for p in possible:
+            names = [x["name"] for x in self.tasks.query({"calcid": {"$in": [int(be["calcid"]) for be in p["best_entries"].values()]}})]
+            self.logger.debug(f"ALL NAMES: {names}")
+            if for_name in names:
+                poss_for_docs.append(PESPointDoc(**p))
+            elif rev_name in names:
+                poss_rev_docs.append(PESPointDoc(**p))
+
+        # One or both endpoints could not be found
+        if len(poss_for_docs) == 0 or len(poss_rev_docs) == 0:
+            self.logger.debug("NO POSS_FOR OR POSS_REV")
+            return None
+
         forward_minima = list()
+        reverse_minima = list()
 
-        for poss_min in poss_min_docs:
+        for poss_for in poss_for_docs:
             # Level of theory for optimization must match level of theory for
             # TS frequency calculation
-            if poss_min.best_entries is None:
+            if poss_for.best_entries is None:
+                self.logger.debug("POSS_FOR BEST_ENTRIES IS NONE")
                 continue
 
-            # TODO: Should I be searching all entries instead of only best entries?
-            if ts_freq_lot in poss_min.best_entries.keys():
-                poss_opt_entry = poss_min.best_entries[ts_freq_lot]
-            elif LevelOfTheory(ts_freq_lot) in poss_min.best_entries.keys():
+            if ts_freq_lot in poss_for.best_entries.keys():
+                poss_opt_entry = poss_for.best_entries[ts_freq_lot]
+            elif LevelOfTheory(ts_freq_lot) in poss_for.best_entries.keys():
                 ts_freq_lot = LevelOfTheory(ts_freq_lot)
-                poss_opt_entry = poss_min.best_entries[ts_freq_lot]
+                poss_opt_entry = poss_for.best_entries[ts_freq_lot]
             else:
+                self.logger.debug("POSS_FOR LOT IS MISSING")
                 continue
 
             initial_mol = poss_opt_entry["input"].get("molecule")
             final_mol = poss_opt_entry["output"].get("molecule")
             # Should never be the case, but for safety...
             if initial_mol is None or final_mol is None:
+                self.logger.debug("POSS_FOR INITIAL OR FINAL MOL MISSING")
                 continue
 
             if not isinstance(initial_mol, Molecule):
@@ -373,24 +395,65 @@ class ReactionAssociationBuilder(Builder):
             if not isinstance(final_mol, Molecule):
                 final_mol = Molecule.from_dict(final_mol)
 
-            # Endpoint is the same as TS
-            if np.allclose(final_mol.cart_coords, ts_mol_coords):
+            # Species must always be the same
+            if not ts_mol.species == initial_mol.species:
+                self.logger.debug("POSS_FOR SPECIES NOT IDENTICAL")
                 continue
 
-            init_mol_coords = initial_mol.cart_coords
-            diff = init_mol_coords - ts_mol_coords
-            diff_norm = diff / diff.sum(axis=1)[:, np.newaxis]
+            # Endpoint is the same as TS
+            if np.allclose(final_mol.cart_coords, ts_mol_coords):
+                self.logger.debug("POSS_FOR IDENTICAL TO TS")
+                continue
 
-            if np.allclose(diff_norm, transition_mode_normalized, atol=1e-05):
-                if np.sum(diff) < 0:
-                    reverse_minima.append(poss_min)
-                else:
-                    forward_minima.append(poss_min)
+            forward_minima.append(poss_for)
+
+        for poss_rev in poss_rev_docs:
+            # Level of theory for optimization must match level of theory for
+            # TS frequency calculation
+            if poss_rev.best_entries is None:
+                self.logger.debug("POSS_REV BEST_ENTRIES IS NONE")
+                continue
+
+            if ts_freq_lot in poss_rev.best_entries.keys():
+                poss_opt_entry = poss_rev.best_entries[ts_freq_lot]
+            elif LevelOfTheory(ts_freq_lot) in poss_rev.best_entries.keys():
+                ts_freq_lot = LevelOfTheory(ts_freq_lot)
+                poss_opt_entry = poss_rev.best_entries[ts_freq_lot]
+            else:
+                self.logger.debug("POSS_REV LOT IS MISSING")
+                continue
+
+            initial_mol = poss_opt_entry["input"].get("molecule")
+            final_mol = poss_opt_entry["output"].get("molecule")
+            # Should never be the case, but for safety...
+            if initial_mol is None or final_mol is None:
+                self.logger.debug("POSS_REV INITIAL OR FINAL MOL MISSING")
+                continue
+
+            if not isinstance(initial_mol, Molecule):
+                initial_mol = Molecule.from_dict(initial_mol)
+            if not isinstance(final_mol, Molecule):
+                final_mol = Molecule.from_dict(final_mol)
+
+            # Species must always be the same
+            if not ts_mol.species == initial_mol.species:
+                self.logger.debug("POSS_REV SPECIES NOT IDENTICAL")
+                continue
+
+            # Endpoint is the same as TS
+            if np.allclose(final_mol.cart_coords, ts_mol_coords):
+                self.logger.debug("POSS_REV IDENTICAL TO TS")
+                continue
+
+            reverse_minima.append(poss_rev)
 
         # One or both endpoints could not be found
-        if len(reverse_minima) == 0 or len(forward_minima) == 0:
+        if len(forward_minima) == 0 or len(reverse_minima) == 0:
+            self.logger.debug("FORWARD OR REVERSE MINIMA MISSING")
             return None
 
+        # TODO: check how many TS have multiple possible reactants and/or products
+        # If it's more than a handful, we should have a more robust way to select the right one
         return (
             sorted(reverse_minima, key=lambda x: x.best_entries[ts_freq_lot]["energy"])[
                 0
@@ -405,17 +468,17 @@ class ReactionAssociationBuilder(Builder):
         Process the into a ReactionDoc
 
         Args:
-            tasks [dict] : a list of TransitionStateDocs
+            tasks [dict] : a list of dictionary representations of TS
 
         Returns:
             [dict] : a list of new ReactionDocs
         """
 
-        tss = [TransitionStateDoc(**item) for item in items]
-        formula = tss[0].formula_alphabetical
+        tss = [PESPointDoc(**item) for item in items]
+        hash = tss[0].species_hash
         ids = [ts.molecule_id for ts in tss]
 
-        self.logger.debug(f"Processing {formula} : {ids}")
+        self.logger.debug(f"Processing {hash} : {ids}")
         reactions = list()
 
         for ts in tss:
@@ -429,7 +492,7 @@ class ReactionAssociationBuilder(Builder):
             doc = ReactionDoc.from_docs(endpoints[0], endpoints[1], ts)
             reactions.append(doc)
 
-        self.logger.debug(f"Produced {len(reactions)} reactions for {formula}")
+        self.logger.debug(f"Produced {len(reactions)} reactions for {hash}")
 
         return jsanitize([doc.dict() for doc in reactions], allow_bson=True)
 

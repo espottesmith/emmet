@@ -116,6 +116,7 @@ class TaskDocument(MoleculeMetadata):
     )
 
     name: str = Field(None, description="Name of this calculation")
+
     job_id: str = Field(
         None, description="Internal JobDB ID for this Jaguar calculation"
     )
