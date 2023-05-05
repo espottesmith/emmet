@@ -101,7 +101,9 @@ class EmmetSettings(BaseSettings):
     JAGUAR_BASIS_QUALITY_SCORES: Dict[str, int] = Field(
         {
             "def2-svpd(-f)": 1,
-            "def2-tzvppd(-g)": 3,
+            "def2-svpd": 2,
+            "def2-tzvpd": 3,
+            "def2-tzvppd(-g)": 4,
         },
         description="Dictionary mapping Jaguar basis sets to a quality score.",
     )

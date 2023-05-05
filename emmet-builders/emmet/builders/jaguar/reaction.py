@@ -12,11 +12,10 @@ from maggma.stores import Store
 from maggma.utils import grouper
 
 from emmet.builders.settings import EmmetBuildSettings
-from emmet.core.utils import jsanitize, perturb
+from emmet.core.utils import jsanitize
 from emmet.core.jaguar.calc_types import LevelOfTheory
 from emmet.core.jaguar.pes import (
-    PESMinimumDoc,
-    TransitionStateDoc,
+    PESPointDoc
 )
 from emmet.core.jaguar.reactions import ReactionDoc
 
@@ -49,10 +48,9 @@ def group_reactions(reactions: List[ReactionDoc], consider_metal_bonds: bool = F
             for group in groups:
                 rep = group[0]
                 if consider_metal_bonds:
-                    if doc.reactant_molecule_graph.isomorphic_to(
-                        rep.reactant_molecule_graph
-                    ) and doc.product_molecule_graph.isomorphic_to(
-                        rep.product_molecule_graph
+                    if (
+                        doc.reactant_species_hash == rep.product_species_hash
+                        and doc.product_species_hash == rep.product_species_hash
                     ):
                         if (
                             doc.bond_types_broken == rep.bond_types_broken
@@ -62,10 +60,9 @@ def group_reactions(reactions: List[ReactionDoc], consider_metal_bonds: bool = F
                             match = True
                             break
 
-                    elif doc.reactant_molecule_graph.isomorphic_to(
-                        rep.product_molecule_graph
-                    ) and doc.product_molecule_graph.isomorphic_to(
-                        rep.reactant_molecule_graph
+                    elif (
+                        doc.reactant_species_hash == rep.product_species_hash
+                        and doc.product_species_hash == rep.reactant_species_hash
                     ):
                         if (
                             doc.bond_types_broken == rep.bond_types_formed
@@ -76,10 +73,9 @@ def group_reactions(reactions: List[ReactionDoc], consider_metal_bonds: bool = F
                             break
 
                 else:
-                    if doc.reactant_molecule_graph_nometal.isomorphic_to(
-                        rep.reactant_molecule_graph_nometal
-                    ) and doc.product_molecule_graph_nometal.isomorphic_to(
-                        rep.product_molecule_graph_nometal
+                    if (
+                        doc.reactant_species_hash_nometal == rep.reactant_species_hash_nometal
+                        and doc.product_species_hash_nometal == rep.product_species_hash_nometal 
                     ):
                         if (
                             doc.bond_types_broken_nometal
@@ -90,10 +86,9 @@ def group_reactions(reactions: List[ReactionDoc], consider_metal_bonds: bool = F
                             group.append(doc)
                             match = True
                             break
-                    elif doc.reactant_molecule_graph_nometal.isomorphic_to(
-                        rep.product_molecule_graph_nometal
-                    ) and doc.product_molecule_graph_nometal.isomorphic_to(
-                        rep.reactant_molecule_graph_nometal
+                    elif (
+                        doc.reactant_species_hash_nometal == rep.product_species_hash_nometal
+                        and doc.product_species_hash_nometal == rep.reactant_species_hash_nometal
                     ):
                         if (
                             doc.bond_types_broken_nometal

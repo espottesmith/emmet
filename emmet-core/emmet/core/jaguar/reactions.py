@@ -1,5 +1,5 @@
 """ Core definition of document describing molecular chemical reactions """
-from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from pydantic import Field
 
@@ -10,13 +10,11 @@ from pymatgen.analysis.local_env import OpenBabelNN, metal_edge_extender
 from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
 from emmet.core.structure import MoleculeMetadata
-from emmet.core.jaguar.calc_types import CalcType, LevelOfTheory, TaskType
-from emmet.core.jaguar.task import TaskDocument, filter_task_type
+from emmet.core.jaguar.calc_types import LevelOfTheory, TaskType
+from emmet.core.jaguar.task import filter_task_type
 from emmet.core.jaguar.pes import (
     evaluate_lot,
     PESPointDoc,
-    PESMinimumDoc,
-    TransitionStateDoc,
 )
 
 
@@ -29,17 +27,16 @@ metals = ["Li", "Mg", "Ca", "Zn", "Al"]
 
 
 def find_common_reaction_lot_opt(
-    endpoint1: PESMinimumDoc,
-    endpoint2: PESMinimumDoc,
-    transition_state: TransitionStateDoc,
+    endpoint1: PESPointDoc,
+    endpoint2: PESPointDoc,
+    transition_state: PESPointDoc,
 ) -> Optional[str]:
     """
-    Identify the highest level of theory (LOT) used in two PESMinimumDocs
-    (reaction endpoints) and one TransitionStateDoc for geometry optimization.
+    Identify the highest level of theory (LOT) used in a reaction.
 
-    :param endpoint1: PESMinimumDoc for the first endpoint
-    :param endpoint2: PESMinimumDoc for the second endpoint
-    :param transition_state: TransitionStateDoc for the transition-state of this
+    :param endpoint1: PESPointDoc for the first endpoint
+    :param endpoint2: PESPointDoc for the second endpoint
+    :param transition_state: PESPointDoc for the transition-state of this
         reaction
     :return: String representation of the best common level of theory.
     """
@@ -57,18 +54,17 @@ def find_common_reaction_lot_opt(
 
 
 def find_common_reaction_lot_sp(
-    endpoint1: PESMinimumDoc,
-    endpoint2: PESMinimumDoc,
-    transition_state: TransitionStateDoc,
+    endpoint1: PESPointDoc,
+    endpoint2: PESPointDoc,
+    transition_state: PESPointDoc,
 ) -> Optional[str]:
     """
-    Identify the highest level of theory (LOT) used by two PESMinimumDocs
-    (reaction endpoints) and one TransitionStateDoc for single-point energy
-    evaluations.
+    Identify the highest level of theory (LOT) used for single-point energy correction
+    in a reaction.
 
-    :param endpoint1: PESMinimumDoc for the first endpoint
-    :param endpoint2: PESMinimumDoc for the second endpoint
-    :param transition_state: TransitionStateDoc for the transition-state of this
+    :param endpoint1: PESPointDoc for the first endpoint
+    :param endpoint2: PESPointDoc for the second endpoint
+    :param transition_state: PESPointDoc for the transition-state of this
         reaction
     :return: String representation of the best common level of theory.
     """
@@ -207,6 +203,21 @@ class ReactionDoc(MoleculeMetadata):
         description="List of bonds in the reactants in the form (a, b), where a and b are 0-indexed "
         "atom indices, with all metal ions removed",
     )
+    reactant_coord_hash: str = Field(
+        None,
+        description="Weisfeiler Lehman (WL) graph hash of the reactant using the atom coordinates as the graph "
+        "node attribute.",
+    )
+    reactant_species_hash: str = Field(
+        None,
+        description="Weisfeiler Lehman (WL) graph hash of the reactant using the atom species as the "
+                    "graph node attribute."
+    )
+    reactant_species_hash_nometal: str = Field(
+        None,
+        description="Weisfeiler Lehman (WL) graph hash of the reactant using the atom species as the "
+                    "graph node attribute, where metal bonds are excluded."
+    )
     reactant_energy: float = Field(
         None,
         description="Electronic energy of the reactants of this reaction (units: eV).",
@@ -248,6 +259,21 @@ class ReactionDoc(MoleculeMetadata):
         [],
         description="List of bonds in the products in the form (a, b), where a and b are 0-indexed "
         "atom indices, with all metal ions removed",
+    )
+    product_coord_hash: str = Field(
+        None,
+        description="Weisfeiler Lehman (WL) graph hash of the product using the atom coordinates as the graph "
+        "node attribute.",
+    )
+    product_species_hash: str = Field(
+        None,
+        description="Weisfeiler Lehman (WL) graph hash of the product using the atom species as the "
+                    "graph node attribute."
+    )
+    product_species_hash_nometal: str = Field(
+        None,
+        description="Weisfeiler Lehman (WL) graph hash of the product using the atom species as the "
+                    "graph node attribute, where metal bonds are excluded."
     )
     product_energy: float = Field(
         None,
@@ -372,9 +398,9 @@ class ReactionDoc(MoleculeMetadata):
     @classmethod
     def from_docs(
         cls,
-        endpoint1: PESMinimumDoc,
-        endpoint2: PESMinimumDoc,
-        transition_state: TransitionStateDoc,
+        endpoint1: PESPointDoc,
+        endpoint2: PESPointDoc,
+        transition_state: PESPointDoc,
         deprecated: bool = False,
         **kwargs
     ):  # type: ignore[override]
@@ -382,10 +408,10 @@ class ReactionDoc(MoleculeMetadata):
         Define a reaction based on reactant & product complexes and a
         transition-state
 
-        :param endpoint1: PESMinimumDoc describing one endpoint of this reaction
-        :param products: PESMinimumDOc describing the other endpoint of this
+        :param endpoint1: PESPointDoc describing one endpoint of this reaction
+        :param products: PESPointDoc describing the other endpoint of this
             reaction
-        :param transition_state: TransitionStateDoc describing the TS of this
+        :param transition_state: PESPointDoc describing the TS of this
             reaction
         :param deprecated: Bool. Is this reaction deprecated?
         :param kwargs:
@@ -436,8 +462,9 @@ class ReactionDoc(MoleculeMetadata):
         )
 
         # If there are high-quality single-points, use them for energy
-        if chosen_lot_sp is not None and evaluate_lot(chosen_lot_sp) < evaluate_lot(
-            chosen_lot_opt
+        if (
+            chosen_lot_sp is not None
+            and evaluate_lot(chosen_lot_sp) < evaluate_lot(chosen_lot_opt)
         ):
             end1_sp = filter_task_type(
                 endpoint1.entries,

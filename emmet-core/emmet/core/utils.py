@@ -15,12 +15,11 @@ from pymatgen.analysis.structure_matcher import (
     ElementComparator,
     StructureMatcher,
 )
+from pymatgen.util.graph_hashing import weisfeiler_lehman_graph_hash
 from pymatgen.core.structure import Molecule, Structure
 
-from emmet.core.graph_hashing import weisfeiler_lehman_graph_hash
 from emmet.core.mpid import MPculeID
 from emmet.core.settings import EmmetSettings
-from emmet.core.math import Matrix3D
 
 try:
     import bson

@@ -147,6 +147,24 @@ class TaskDocument(MoleculeMetadata):
 
     nelectrons: int = Field(None, description="Number of electrons in this calculation")
 
+    coord_hash: str = Field(
+        None,
+        description="Weisfeiler Lehman (WL) graph hash using the atom coordinates as the graph "
+        "node attribute.",
+    )
+
+    species_hash: str = Field(
+        None,
+        description="Weisfeiler Lehman (WL) graph hash using the atom species as the "
+                    "graph node attribute."
+    )
+
+    species_hash_nometal: str = Field(
+        None,
+        description="Weisfeiler Lehman (WL) graph hash using the atom species as the "
+                    "graph node attribute, where metal bonds are excluded."
+    )
+
     @property
     def level_of_theory(self) -> LevelOfTheory:
         return level_of_theory(self.input)
@@ -186,6 +204,10 @@ class TaskDocument(MoleculeMetadata):
         entry_dict = {
             "entry_id": self.calcid,
             "calcid": self.calcid,
+            "name": self.name,
+            "coord_hash": self.coord_hash,
+            "species_hash": self.species_hash,
+            "species_hash_nometal": self.species_hash_nometal,
             "charge": charge,
             "spin_multiplicity": spin,
             "nelectrons": nelectrons,

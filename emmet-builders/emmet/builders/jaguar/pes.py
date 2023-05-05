@@ -14,8 +14,6 @@ from emmet.core.jaguar.pes import (
     best_lot,
     evaluate_lot,
     PESPointDoc,
-    PESMinimumDoc,
-    TransitionStateDoc,
 )
 from emmet.core.jaguar.task import TaskDocument
 
@@ -89,7 +87,7 @@ def filter_and_group_tasks(
         yield grouped_tasks
 
 
-class PESMinimumBuilder(Builder):
+class PESPointBuilder(Builder):
     """
     The PESMinimumBuilder matches Jaguar task documents that represent minima of
     a potential energy surface (no imaginary frequencies, or one negligible
@@ -102,7 +100,7 @@ class PESMinimumBuilder(Builder):
         2.) Select only task documents for the task_types we can select
         properties from
         3.) Aggregate task documents based on nuclear geometry
-        4.) Create PESMinimumDocs, filtering based on the characteristic
+        4.) Create PESPointDocs, filtering based on the characteristic
         frequencies calculated in the tasks
     """
 
@@ -133,7 +131,7 @@ class PESMinimumBuilder(Builder):
         self.negative_threshold = negative_threshold
         self.kwargs = kwargs
 
-        super().__init__(sources=[tasks], targets=[minima])
+        super().__init__(sources=[tasks], targets=[minima], **kwargs)
 
     def ensure_indexes(self):
         """
@@ -280,7 +278,7 @@ class PESMinimumBuilder(Builder):
                 minima.append(PESMinimumDoc.from_tasks(group))
             except Exception as e:
                 failed_ids = list({t_.calcid for t_ in group})
-                doc = PESPointDoc.construct_deprecated_pes_point(tasks)
+                doc = PESPointDoc.construct_deprecated_pes_point(group)
                 doc.warnings.append(str(e))
                 minima.append(doc)
                 self.logger.warn(
