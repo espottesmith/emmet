@@ -115,7 +115,7 @@ class CoreMoleculeDoc(MoleculeMetadata):
     """
 
     # Only molecule_id is required for all documents
-    molecule_id: MPculeID = Field(
+    molecule_id: Union[MPID, MPculeID] = Field(
         ...,
         description="The ID of this molecule, used as a universal reference across property documents."
         "This comes in the form of an MPID (or int) or MPculeID (or str)",
