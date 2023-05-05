@@ -143,6 +143,7 @@ class ReactionAssociationBuilder(Builder):
 
     def __init__(
         self,
+        tasks: Store,
         transition_states: Store,
         minima: Store,
         assoc: Store,
@@ -152,13 +153,15 @@ class ReactionAssociationBuilder(Builder):
     ):
         """
         Args:
-            transition_states:  Store of TransitionStateDocs
-            minima: Store of PESMinimumDocs
+            tasks: Store of Jaguar task documents
+            transition_states:  Store of transition-states (TS)
+            minima: Store of PES minima
             assoc: Store to be populated with ReactionDocs
             query: dictionary to limit PES points to be analyzed
             settings: EmmetSettings to use in the build process
         """
 
+        self.tasks = tasks
         self.transition_states = transition_states
         self.minima = minima
         self.assoc = assoc
@@ -166,9 +169,9 @@ class ReactionAssociationBuilder(Builder):
         self.settings = EmmetBuildSettings.autoload(settings)
         self.kwargs = kwargs
 
-        super().__init__(sources=[transition_states, minima], targets=[assoc], **kwargs)
+        super().__init__(sources=[tasks, transition_states, minima], targets=[assoc], **kwargs)
         # Uncomment in case of issue with mrun not connecting automatically to collections
-        # for i in [self.transition_states, self.minima, self.assoc]:
+        # for i in [self.tasks, self.transition_states, self.minima, self.assoc]:
         #     try:
         #         i.connect()
         #     except Exception as e:
@@ -179,17 +182,32 @@ class ReactionAssociationBuilder(Builder):
         Ensures indices on the collections needed for building
         """
 
+        # Basic search index for tasks
+        self.tasks.ensure_index("calcid")
+        self.tasks.ensure_index("last_updated")
+        self.tasks.ensure_index("success")
+        self.tasks.ensure_index("formula_alphabetical")
+        self.tasks.ensure_index("coord_hash")
+        self.tasks.ensure_index("species_hash")
+        self.tasks.ensure_index("species_hash_nometal")
+
         # Search index for minima
         self.minima.ensure_index("molecule_id")
         self.minima.ensure_index("last_updated")
         self.minima.ensure_index("task_ids")
         self.minima.ensure_index("formula_alphabetical")
+        self.minima.ensure_index("coord_hash")
+        self.minima.ensure_index("species_hash")
+        self.minima.ensure_index("species_hash_nometal")
 
-        # Search index for transition-states
-        self.transition_states.ensure_index("molecule_id")
-        self.transition_states.ensure_index("last_updated")
-        self.transition_states.ensure_index("task_ids")
-        self.transition_states.ensure_index("formula_alphabetical")
+        # Search index for ts
+        self.ts.ensure_index("molecule_id")
+        self.ts.ensure_index("last_updated")
+        self.ts.ensure_index("task_ids")
+        self.ts.ensure_index("formula_alphabetical")
+        self.ts.ensure_index("coord_hash")
+        self.ts.ensure_index("species_hash")
+        self.ts.ensure_index("species_hash_nometal")
 
         # Search index for reactions
         self.assoc.ensure_index("reaction_id")

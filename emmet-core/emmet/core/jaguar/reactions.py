@@ -501,22 +501,34 @@ class ReactionDoc(MoleculeMetadata):
             rct_structure = endpoint1.molecule
             rct_e = end1_e
             rct_freq = end1_freq
+            rct_coord_hash = endpoint1.coord_hash
+            rct_species_hash = endpoint1.species_hash
+            rct_species_hash_nometal = endpoint1.species_hash_nometal
 
             pro_id = endpoint2.molecule_id
             pro_structure = endpoint2.molecule
             pro_e = end2_e
             pro_freq = end2_freq
+            pro_coord_hash = endpoint2.coord_hash
+            pro_species_hash = endpoint2.species_hash
+            pro_species_hash_nometal = endpoint2.species_hash_nometal
         # endpoint_2 is the reactant
         else:
             rct_id = endpoint2.molecule_id
             rct_structure = endpoint2.molecule
             rct_e = end2_e
             rct_freq = end2_freq
+            rct_coord_hash = endpoint2.coord_hash
+            rct_species_hash = endpoint2.species_hash
+            rct_species_hash_nometal = endpoint2.species_hash_nometal
 
             pro_id = endpoint1.molecule_id
             pro_structure = endpoint1.molecule
             pro_e = end1_e
             pro_freq = end1_freq
+            pro_coord_hash = endpoint1.coord_hash
+            pro_species_hash = endpoint1.species_hash
+            pro_species_hash_nometal = endpoint1.species_hash_nometal
 
         dE = pro_e - rct_e
         dE_barrier = ts_e - rct_e
@@ -638,6 +650,9 @@ class ReactionDoc(MoleculeMetadata):
             reactant_molecule_graph_nometal=rct_mg_nometal,
             reactant_bonds=rct_bonds,
             reactant_bonds_nometal=rct_bonds_nometal,
+            reactant_coord_hash=rct_coord_hash,
+            reactant_species_hash=rct_species_hash,
+            reactant_species_hash_nometal=rct_species_hash_nometal,
             reactant_energy=rct_e,
             reactant_zpe=rct_zpe,
             reactant_enthalpy=rct_h,
@@ -648,6 +663,9 @@ class ReactionDoc(MoleculeMetadata):
             product_molecule_graph_nometal=pro_mg_nometal,
             product_bonds=pro_bonds,
             product_bonds_nometal=pro_bonds_nometal,
+            product_coord_hash=rct_coord_hash,
+            product_species_hash=rct_species_hash,
+            product_species_hash_nometal=rct_species_hash_nometal,
             product_energy=pro_e,
             product_zpe=pro_zpe,
             product_enthalpy=pro_h,

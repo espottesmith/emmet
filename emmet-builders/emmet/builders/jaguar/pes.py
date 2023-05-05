@@ -178,7 +178,7 @@ class PESPointBuilder(Builder):
             self.tasks.query(temp_query, [self.tasks.key, "species_hash"])
         )
 
-        processed_tasks = set(self.minima.distinct("task_ids"))
+        processed_tasks = set(self.minima.distinct("task_ids")) | set(self.ts.distinct("task_ids"))
         to_process_tasks = {d[self.tasks.key] for d in all_tasks} - processed_tasks
         to_process_hashes = set()
         for d in all_tasks:
@@ -222,7 +222,7 @@ class PESPointBuilder(Builder):
             self.tasks.query(temp_query, [self.tasks.key, "species_hash"])
         )
 
-        processed_tasks = set(self.minima.distinct("task_ids"))
+        processed_tasks = set(self.minima.distinct("task_ids")) | set(self.ts.distinct("task_ids"))
         to_process_tasks = {d[self.tasks.key] for d in all_tasks} - processed_tasks
         to_process_hashes = set()
         for d in all_tasks:
@@ -313,7 +313,7 @@ class PESPointBuilder(Builder):
 
         self.logger.debug(f"Produced {len(docs)} docs for {hash}")
 
-        return jsanitize([doc.dict() for doc in minima], allow_bson=True)
+        return jsanitize([doc.dict() for doc in docs], allow_bson=True)
 
     def update_targets(self, items: List[Dict]):
         """
