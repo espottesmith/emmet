@@ -254,7 +254,8 @@ class PESPointBuilder(Builder):
             "formula_alphabetical",
             "coord_hash",
             "species_hash",
-            "species_hash_nometal"
+            "species_hash_nometal",
+            "name"
         ]
 
         for hash in to_process_hashes:

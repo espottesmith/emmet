@@ -233,22 +233,22 @@ class ReactionAssociationBuilder(Builder):
         self.logger.info("Finding transition-states to process")
         all_ts = list(
             self.transition_states.query(
-                temp_query, [self.transition_states.key, "formula_alphabetical"]
+                temp_query, [self.transition_states.key, "species_hash"]
             )
         )
 
         processed_ts = set(self.assoc.distinct("transition_state_id"))
         to_process_ts = {d[self.transition_states.key] for d in all_ts} - processed_ts
-        to_process_forms = {
-            d["formula_alphabetical"]
+        to_process_hashes = {
+            d["species_hash"]
             for d in all_ts
             if d[self.transition_states.key] in to_process_ts
         }
 
-        N = ceil(len(to_process_forms) / number_splits)
+        N = ceil(len(to_process_hashes) / number_splits)
 
-        for formula_chunk in grouper(to_process_forms, N):
-            yield {"query": {"formula_alphabetical": {"$in": list(formula_chunk)}}}
+        for hash_chunk in grouper(to_process_hashes, N):
+            yield {"query": {"species_hash": {"$in": list(hash_chunk)}}}
 
     def get_items(self) -> Iterator[List[Dict]]:
         """
@@ -273,27 +273,27 @@ class ReactionAssociationBuilder(Builder):
         self.logger.info("Finding transition-states to process")
         all_ts = list(
             self.transition_states.query(
-                temp_query, [self.transition_states.key, "formula_alphabetical"]
+                temp_query, [self.transition_states.key, "species_hash"]
             )
         )
 
         processed_ts = set(self.assoc.distinct("transition_state_id"))
         to_process_ts = {d[self.transition_states.key] for d in all_ts} - processed_ts
-        to_process_forms = {
-            d["formula_alphabetical"]
+        to_process_hashes = {
+            d["species_hash"]
             for d in all_ts
             if d[self.transition_states.key] in to_process_ts
         }
 
         self.logger.info(f"Found {len(to_process_ts)} unprocessed transition-states")
-        self.logger.info(f"Found {len(to_process_forms)} unprocessed formulas")
+        self.logger.info(f"Found {len(to_process_hashes)} unprocessed structures")
 
         # Set total for builder bars to have a total
-        self.total = len(to_process_forms)
+        self.total = len(to_process_hashes)
 
-        for formula in to_process_forms:
+        for hash in to_process_hashes:
             ts_query = dict(temp_query)
-            ts_query["formula_alphabetical"] = formula
+            ts_query["species_hash"] = hash
             tss = list(self.transition_states.query(criteria=ts_query))
 
             # TODO: Do I need to do validation?
@@ -303,13 +303,13 @@ class ReactionAssociationBuilder(Builder):
             yield tss
 
     def identify_endpoints(
-        self, ts: TransitionStateDoc
-    ) -> Optional[Tuple[PESMinimumDoc, PESMinimumDoc]]:
+        self, ts: PESPointDoc
+    ) -> Optional[Tuple[PESPointDoc, PESPointDoc]]:
         """
         Identify the minima associated with a TS.
 
-        :param ts: TransitionStateDoc
-        :return: Tuple (PESMinimumDoc, PESMinimumDoc), representing the two
+        :param ts: PESPointDoc
+        :return: Tuple (PESPointDoc, PESPointDoc), representing the two
             endpoints of the reaction associated with ts.
             If one or both endpoints cannot be found, returns None
         """
@@ -319,6 +319,9 @@ class ReactionAssociationBuilder(Builder):
         # to the endpoints
 
         ts_mol = Molecule.from_dict(ts.freq_entry["output"]["molecule"])  # type: ignore
+        ts_name = ts.freq_entry["name"]
+        for_name = ts_name + " forwards"
+        rev_name = ts_name + " reverse"
         ts_mol_coords = ts_mol.cart_coords  # type: ignore
         transition_mode = ts.vibrational_frequency_modes[0]
         transition_array = np.array(transition_mode)
