@@ -8,7 +8,7 @@ from pymatgen.analysis.molecule_matcher import MoleculeMatcher
 
 from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
-from emmet.core.material import MoleculeDoc as CoreMoleculeDoc
+from emmet.core.material import CoreMoleculeDoc
 from emmet.core.material import PropertyOrigin
 from emmet.core.structure import MoleculeMetadata
 from emmet.core.jaguar.calc_types import CalcType, LevelOfTheory, TaskType
