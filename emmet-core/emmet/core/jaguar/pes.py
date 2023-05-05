@@ -8,7 +8,6 @@ from pymatgen.analysis.molecule_matcher import MoleculeMatcher
 
 from emmet.core.mpid import MPID
 from emmet.core.settings import EmmetSettings
-from emmet.core.math import Matrix3D
 from emmet.core.material import MoleculeDoc as CoreMoleculeDoc
 from emmet.core.material import PropertyOrigin
 from emmet.core.structure import MoleculeMetadata

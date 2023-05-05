@@ -7,7 +7,6 @@ from pydantic import BaseModel, Field
 from pymatgen.core.structure import Molecule
 
 from emmet.core.mpid import MPID
-from emmet.core.math import Matrix3D
 from emmet.core.structure import MoleculeMetadata
 from emmet.core.jaguar.calc_types import (
     LevelOfTheory,
