@@ -70,7 +70,6 @@ def filter_and_group_tasks(
     ]
 
     molecules = list()
-    lots = list()
 
     for idx, task in enumerate(filtered_tasks):
         if task.output.molecule:
@@ -79,9 +78,8 @@ def filter_and_group_tasks(
             m = task.input["molecule"]
         m.index = idx  # type: ignore
         molecules.append(m)
-        lots.append(task.level_of_theory.value)
 
-    grouped_molecules = group_molecules(molecules, lots)
+    grouped_molecules = group_molecules(molecules)
     for group in grouped_molecules:
         grouped_tasks = [filtered_tasks[mol.index] for mol in group]  # type: ignore
         yield grouped_tasks
