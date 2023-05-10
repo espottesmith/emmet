@@ -75,7 +75,7 @@ def group_reactions(reactions: List[ReactionDoc], consider_metal_bonds: bool = F
                 else:
                     if (
                         doc.reactant_species_hash_nometal == rep.reactant_species_hash_nometal
-                        and doc.product_species_hash_nometal == rep.product_species_hash_nometal 
+                        and doc.product_species_hash_nometal == rep.product_species_hash_nometal
                     ):
                         if (
                             doc.bond_types_broken_nometal
