@@ -545,7 +545,7 @@ class ReactionDoc(MoleculeMetadata):
             rct_freq = end2_freq
             rct_coord_hash = endpoint2.coord_hash
             rct_species_hash = endpoint2.species_hash
-            rct_species_hash_nometal = endpoint2.species_hash_nometal\
+            rct_species_hash_nometal = endpoint2.species_hash_nometal
             rct_charges = end2_charges
 
             pro_id = endpoint1.molecule_id

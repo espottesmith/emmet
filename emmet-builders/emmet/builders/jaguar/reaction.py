@@ -14,9 +14,7 @@ from maggma.utils import grouper
 from emmet.builders.settings import EmmetBuildSettings
 from emmet.core.utils import jsanitize
 from emmet.core.jaguar.calc_types import LevelOfTheory
-from emmet.core.jaguar.pes import (
-    PESPointDoc
-)
+from emmet.core.jaguar.pes import PESPointDoc
 from emmet.core.jaguar.reactions import ReactionDoc
 
 
