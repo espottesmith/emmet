@@ -236,6 +236,11 @@ class ReactionDoc(MoleculeMetadata):
         None,
         description="Gibbs free energy of the reactants of this reaction at 298.15K (units: eV).",
     )
+    reactant_charges: List[Optional[float]] = Field(
+        None,
+        description="Atomic partial charges of the reactants of this reaction based on the electrostatic potential "
+                    "method."
+    )
 
     # Product properties
     product_structure: Molecule = Field(
@@ -293,6 +298,11 @@ class ReactionDoc(MoleculeMetadata):
         None,
         description="Gibbs free energy of the products of this reaction at 298.15K (units: eV).",
     )
+    product_charges: List[Optional[float]] = Field(
+        None,
+        description="Atomic partial charges of the products of this reaction based on the electrostatic potential "
+                    "method."
+    )
 
     # TS properties
     transition_state_structure: Molecule = Field(
@@ -301,23 +311,28 @@ class ReactionDoc(MoleculeMetadata):
     )
     transition_state_energy: float = Field(
         None,
-        description="Electronic energy of the transition_states of this reaction (units: eV).",
+        description="Electronic energy of the transition-state of this reaction (units: eV).",
     )
     transition_state_zpe: float = Field(
         None,
-        description="Vibrational zero-point energy of the transition_states of this reaction (units: eV).",
+        description="Vibrational zero-point energy of the transition-state of this reaction (units: eV).",
     )
     transition_state_enthalpy: float = Field(
         None,
-        description="Enthalpy of the transition_states of this reaction (units: eV).",
+        description="Enthalpy of the transition-state of this reaction (units: eV).",
     )
     transition_state_entropy: float = Field(
         None,
-        description="Entropy of the transition_states of this reaction (units: eV/K).",
+        description="Entropy of the transition-state of this reaction (units: eV/K).",
     )
     transition_state_free_energy: float = Field(
         None,
-        description="Gibbs free energy of the transition_states of this reaction at 298.15K (units: eV).",
+        description="Gibbs free energy of the transition-state of this reaction at 298.15K (units: eV).",
+    )
+    transition_state_charges: List[Optional[float]] = Field(
+        None,
+        description="Atomic partial charges of the transition-state of this reaction using the electrostatic potential "
+                    "method."
     )
 
     # Reaction thermodynamics
@@ -470,25 +485,33 @@ class ReactionDoc(MoleculeMetadata):
                 endpoint1.entries,
                 TaskType.Single_Point,
                 sort_by=lambda x: (x["level_of_theory"] != chosen_lot_sp, x["energy"]),
-            )
+            )[0]
             end2_sp = filter_task_type(
                 endpoint2.entries,
                 TaskType.Single_Point,
                 sort_by=lambda x: (x["level_of_theory"] != chosen_lot_sp, x["energy"]),
-            )
+            )[0]
             ts_sp = filter_task_type(
                 transition_state.entries,
                 TaskType.Single_Point,
                 sort_by=lambda x: (x["level_of_theory"] != chosen_lot_sp, x["energy"]),
-            )
+            )[0]
 
             end1_e = end1_sp["energy"] * 27.2114
             end2_e = end2_sp["energy"] * 27.2114
             ts_e = ts_sp["energy"] * 27.2114
+
+            end1_charges = [ap["esp_charge"] for ap in end1_sp.get("atom_properties", list())]
+            end2_charges = [ap["esp_charge"] for ap in end2_sp.get("atom_properties", list())]
+            ts_charges = [ap["esp_charge"] for ap in ts_sp.get("atom_properties", list())]
         else:
             end1_e = end1_best["energy"] * 27.2114
             end2_e = end2_best["energy"] * 27.2114
             ts_e = ts_best["energy"] * 27.2114
+
+            end1_charges = [ap["esp_charge"] for ap in end1_best.get("atom_properties", list())]
+            end2_charges = [ap["esp_charge"] for ap in end2_best.get("atom_properties", list())]
+            ts_charges = [ap["esp_charge"] for ap in ts_best.get("atom_properties", list())]
 
         # TS thermo and structural information
         ts_id = transition_state.molecule_id
@@ -504,6 +527,7 @@ class ReactionDoc(MoleculeMetadata):
             rct_coord_hash = endpoint1.coord_hash
             rct_species_hash = endpoint1.species_hash
             rct_species_hash_nometal = endpoint1.species_hash_nometal
+            rct_charges = end1_charges
 
             pro_id = endpoint2.molecule_id
             pro_structure = endpoint2.molecule
@@ -512,6 +536,7 @@ class ReactionDoc(MoleculeMetadata):
             pro_coord_hash = endpoint2.coord_hash
             pro_species_hash = endpoint2.species_hash
             pro_species_hash_nometal = endpoint2.species_hash_nometal
+            pro_charges = end2_charges
         # endpoint_2 is the reactant
         else:
             rct_id = endpoint2.molecule_id
@@ -520,7 +545,8 @@ class ReactionDoc(MoleculeMetadata):
             rct_freq = end2_freq
             rct_coord_hash = endpoint2.coord_hash
             rct_species_hash = endpoint2.species_hash
-            rct_species_hash_nometal = endpoint2.species_hash_nometal
+            rct_species_hash_nometal = endpoint2.species_hash_nometal\
+            rct_charges = end2_charges
 
             pro_id = endpoint1.molecule_id
             pro_structure = endpoint1.molecule
@@ -529,6 +555,7 @@ class ReactionDoc(MoleculeMetadata):
             pro_coord_hash = endpoint1.coord_hash
             pro_species_hash = endpoint1.species_hash
             pro_species_hash_nometal = endpoint1.species_hash_nometal
+            pro_charges = end1_charges
 
         dE = pro_e - rct_e
         dE_barrier = ts_e - rct_e
@@ -658,25 +685,28 @@ class ReactionDoc(MoleculeMetadata):
             reactant_enthalpy=rct_h,
             reactant_entropy=rct_s,
             reactant_free_energy=rct_g,
+            reactant_charges=rct_charges,
             product_structure=pro_structure,
             product_molecule_graph=pro_mg,
             product_molecule_graph_nometal=pro_mg_nometal,
             product_bonds=pro_bonds,
             product_bonds_nometal=pro_bonds_nometal,
-            product_coord_hash=rct_coord_hash,
-            product_species_hash=rct_species_hash,
-            product_species_hash_nometal=rct_species_hash_nometal,
+            product_coord_hash=pro_coord_hash,
+            product_species_hash=pro_species_hash,
+            product_species_hash_nometal=pro_species_hash_nometal,
             product_energy=pro_e,
             product_zpe=pro_zpe,
             product_enthalpy=pro_h,
             product_entropy=pro_s,
             product_free_energy=pro_g,
+            product_charges=pro_charges,
             transition_state_structure=ts_structure,
             transition_state_energy=ts_e,
             transition_state_zpe=ts_zpe,
             transition_state_enthalpy=ts_h,
             transition_state_entropy=ts_s,
             transition_state_free_energy=ts_g,
+            transition_state_charges=ts_charges,
             dE=dE,
             dE_barrier=dE_barrier,
             dH=dH,
