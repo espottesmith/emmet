@@ -501,17 +501,17 @@ class ReactionDoc(MoleculeMetadata):
             end2_e = end2_sp["energy"] * 27.2114
             ts_e = ts_sp["energy"] * 27.2114
 
-            end1_charges = [ap["esp_charge"] for ap in end1_sp.get("atom_properties", list())]
-            end2_charges = [ap["esp_charge"] for ap in end2_sp.get("atom_properties", list())]
-            ts_charges = [ap["esp_charge"] for ap in ts_sp.get("atom_properties", list())]
+            end1_charges = [ap["esp_charge"] for ap in end1_sp["output"].get("atom_properties", list())]
+            end2_charges = [ap["esp_charge"] for ap in end2_sp["output"].get("atom_properties", list())]
+            ts_charges = [ap["esp_charge"] for ap in ts_sp["output"].get("atom_properties", list())]
         else:
             end1_e = end1_best["energy"] * 27.2114
             end2_e = end2_best["energy"] * 27.2114
             ts_e = ts_best["energy"] * 27.2114
 
-            end1_charges = [ap["esp_charge"] for ap in end1_best.get("atom_properties", list())]
-            end2_charges = [ap["esp_charge"] for ap in end2_best.get("atom_properties", list())]
-            ts_charges = [ap["esp_charge"] for ap in ts_best.get("atom_properties", list())]
+            end1_charges = [ap["esp_charge"] for ap in end1_best["output"].get("atom_properties", list())]
+            end2_charges = [ap["esp_charge"] for ap in end2_best["output"].get("atom_properties", list())]
+            ts_charges = [ap["esp_charge"] for ap in ts_best["output"].get("atom_properties", list())]
 
         # TS thermo and structural information
         ts_id = transition_state.molecule_id
