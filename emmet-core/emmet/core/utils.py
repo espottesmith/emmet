@@ -11,7 +11,7 @@ from monty.json import MSONable
 from pydantic import BaseModel
 
 from pymatgen.analysis.graphs import MoleculeGraph
-from pymatgen.analysis.local_env import OpenBabelNN, metal_edge_extender
+from pymatgen.analysis.local_env import OpenBabelNN, metal_edge_extender, oxygen_edge_extender
 from pymatgen.analysis.molecule_matcher import MoleculeMatcher
 from pymatgen.analysis.structure_matcher import (
     AbstractComparator,
@@ -168,6 +168,7 @@ def make_mol_graph(
     """
     mol_graph = MoleculeGraph.with_local_env_strategy(mol, OpenBabelNN())
     mol_graph = metal_edge_extender(mol_graph)
+    mol_graph = oxygen_edge_extender(mol_graph)
     if critic_bonds:
         mg_edges = mol_graph.graph.edges()
         for bond in critic_bonds:
