@@ -380,14 +380,14 @@ class MoleculeSummaryDoc(PropertyDoc):
     )
 
     # electric multipoles
-    multipole_moments_property_ids: Optional[Dict[str, Dict[str, str]]] = Field(
+    multipole_moments_property_ids: Optional[Dict[str, str]] = Field(
         None,
-        description="Solvent:method:property ID map for each ElectricMultipoleDoc for this molecule.",
+        description="Solvent:property ID map for each ElectricMultipoleDoc for this molecule.",
     )
 
-    multipole_moments_levels_of_theory: Optional[Dict[str, Dict[str, str]]] = Field(
+    multipole_moments_levels_of_theory: Optional[Dict[str, str]] = Field(
         None,
-        description="Solvent:method:level of theory map for each ElectricMultipoleDoc for this molecule.",
+        description="Solvent:level of theory map for each ElectricMultipoleDoc for this molecule.",
     )
 
     total_dipole: Optional[Dict[str, float]] = Field(
