@@ -94,6 +94,12 @@ class OutputSummary(BaseModel):
         "family of implicit solvent models, in atomic units (Ha/Bohr)",
     )
 
+    qtaim: Optional[Dict[str, Dict[Any, Dict[str, Any]]]] = Field(
+        None,
+        description="Quantum Theory of Atoms In Molecules (QTAIM) information, obtained from Multiwfn postprocessing"
+        "of the converged electron density"
+    )
+
     def as_dict(self) -> Dict[str, Any]:
         return {
             "@module": self.__class__.__module__,
@@ -110,6 +116,7 @@ class OutputSummary(BaseModel):
             "dipoles": self.dipoles,
             "gradients": self.gradients,
             "precise_gradients": self.precise_gradients,
+            "qtaim": self.qtaim
         }
 
 

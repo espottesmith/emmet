@@ -11,7 +11,7 @@ from emmet.core.molecules.thermo import get_free_energy, MoleculeThermoDoc
 from emmet.core.mpid import MPID, MPculeID
 
 
-__author__ = "Evan Spotte-Smith <ewcspottesmith@lbl.gov>"
+__author__ = "Evan Spotte-Smith <ewcspottesmith@cmu.edu>"
 
 
 reference_potential = 4.44
