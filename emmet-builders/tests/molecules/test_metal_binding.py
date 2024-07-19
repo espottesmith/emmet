@@ -8,7 +8,7 @@ from emmet.builders.molecules.thermo import ThermoBuilder
 from emmet.builders.molecules.metal_binding import MetalBindingBuilder
 
 
-__author__ = "Evan Spotte-Smith <ewcspottesmith@lbl.gov>"
+__author__ = "Evan Spotte-Smith <ewcspottesmith@cmu.edu>"
 
 
 @pytest.fixture(scope="session")

@@ -5,7 +5,7 @@ from emmet.builders.qchem.molecules import MoleculesAssociationBuilder, Molecule
 from emmet.builders.molecules.trajectory import ForcesBuilder, TrajectoryBuilder
 
 
-__author__ = "Evan Spotte-Smith <ewcspottesmith@lbl.gov>"
+__author__ = "Evan Spotte-Smith <ewcspottesmith@cmu.edu>"
 
 
 @pytest.fixture(scope="session")

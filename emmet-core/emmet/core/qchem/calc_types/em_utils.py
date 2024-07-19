@@ -10,7 +10,7 @@ from emmet.core.qchem.calc_types.calc_types import (
 
 
 __author__ = (
-    "Evan Spotte-Smith <ewcspottesmith@lbl.gov>, Rishabh Debraj Guha <rdguha@lbl.gov>"
+    "Evan Spotte-Smith <ewcspottesmith@cmu.edu>, Rishabh Debraj Guha <rdguha@lbl.gov>"
 )
 
 

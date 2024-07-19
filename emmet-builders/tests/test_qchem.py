@@ -4,7 +4,7 @@ from maggma.stores import JSONStore, MemoryStore
 from emmet.builders.qchem.molecules import MoleculesAssociationBuilder, MoleculesBuilder
 
 
-__author__ = "Evan Spotte-Smith <ewcspottesmith@lbl.gov>"
+__author__ = "Evan Spotte-Smith <ewcspottesmith@cmu.edu>"
 
 
 @pytest.fixture(scope="session")

@@ -9,7 +9,7 @@ from emmet.core.qchem.task import TaskDocument
 from emmet.core.molecules.electric import ElectricMultipoleDoc
 
 
-__author__ = "Evan Spotte-Smith <ewcspottesmith@lbl.gov>"
+__author__ = "Evan Spotte-Smith <ewcspottesmith@cmu.edu>"
 
 
 @pytest.fixture(scope="session")

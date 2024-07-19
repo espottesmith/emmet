@@ -13,7 +13,7 @@ from emmet.core.mpid import MPID, MPculeID
 from emmet.core.molecules.metal_binding import MetalBindingData
 
 
-__author__ = "Evan Spotte-Smith <ewcspottesmith@lbl.gov>"
+__author__ = "Evan Spotte-Smith <ewcspottesmith@cmu.edu>"
 
 
 T = TypeVar("T", bound="MoleculeSummaryDoc")

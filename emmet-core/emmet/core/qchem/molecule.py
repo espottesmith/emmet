@@ -20,7 +20,7 @@ except ImportError:
     openbabel = None
 
 
-__author__ = "Evan Spotte-Smith <ewcspottesmith@lbl.gov>"
+__author__ = "Evan Spotte-Smith <ewcspottesmith@cmu.edu>"
 
 
 SETTINGS = EmmetSettings()

@@ -6,7 +6,7 @@ from emmet.builders.molecules.redox import RedoxBuilder
 from emmet.builders.molecules.thermo import ThermoBuilder
 
 
-__author__ = "Evan Spotte-Smith <ewcspottesmith@lbl.gov>"
+__author__ = "Evan Spotte-Smith <ewcspottesmith@cmu.edu>"
 
 
 @pytest.fixture(scope="session")

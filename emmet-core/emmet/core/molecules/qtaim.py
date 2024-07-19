@@ -13,7 +13,6 @@ from emmet.core.qchem.task import TaskDocument
 from emmet.core.molecules.molecule_property import PropertyDoc
 
 
-# TODO: change my e-mail on everything
 __author__ = "Evan Spotte-Smith <ewcspottesmith@cmu.edu>"
 
 

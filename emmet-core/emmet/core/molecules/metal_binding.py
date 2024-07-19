@@ -14,7 +14,7 @@ from emmet.core.molecules.bonds import MoleculeBondingDoc
 from emmet.core.molecules.thermo import MoleculeThermoDoc
 
 
-__author__ = "Evan Spotte-Smith <ewcspottesmith@lbl.gov>"
+__author__ = "Evan Spotte-Smith <ewcspottesmith@cmu.edu>"
 
 METAL_BINDING_METHODS = ["nbo", "mulliken-OB-mee"]
 

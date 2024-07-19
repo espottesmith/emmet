@@ -24,7 +24,7 @@ from emmet.core.qchem.task import QChemStatus
 
 
 __author__ = (
-    "Evan Spotte-Smith <ewcspottesmith@lbl.gov>, Rishabh D. Guha <rdguha@lbl.gov>"
+    "Evan Spotte-Smith <ewcspottesmith@cmu.edu>, Rishabh D. Guha <rdguha@lbl.gov>"
 )
 
 logger = logging.getLogger(__name__)

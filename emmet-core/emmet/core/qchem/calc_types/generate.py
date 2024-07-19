@@ -11,7 +11,7 @@ from emmet.core.qchem.calc_types.calc_types import (
 )
 
 
-__author__ = "Evan Spotte-Smith <ewcspottesmith@lbl.gov>"
+__author__ = "Evan Spotte-Smith <ewcspottesmith@cmu.edu>"
 
 
 _LOTS = list()
