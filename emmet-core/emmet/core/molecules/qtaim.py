@@ -38,7 +38,6 @@ class CriticalPoint(MSONable):
         esp_electron: float,
         esp_total: float,
         gradient_norm: float,
-        laplacian_norm: float,
         determinant_hessian: float,
         ellipticity_electron_density: float,
         eta_index: float,
@@ -204,7 +203,7 @@ class QTAIMDoc(PropertyDoc):
                 for k, v in desc.items():
                     if k in mapping:
                         this_data[mapping[k]] = v
-                    elif k in ["lap_norm"]:
+                    elif k in ["lap_norm", "cp_num", "element", "number", "connected_bond_paths", "eig_hess"]:
                         continue
                     else:
                         this_data[k] = v

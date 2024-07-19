@@ -31,7 +31,7 @@ FUNCTIONAL_CLASSES = {
     "meta-gga": [
         # "M06-L",
         # "M06-L-D3(0)",
-        # "SCAN",
+        "SCAN",
         # "SCAN-D3(BJ)",
         # "TPSS",
         # "TPSS-D3(BJ)",
