@@ -29,7 +29,13 @@ def nbo_task(test_dir):
     return TaskDocument(**loadfn(test_dir / "open_shell_nbo_task.json.gz"))
 
 
-def test_bonding(test_tasks, nbo_task):
+@pytest.fixture(scope="session")
+def qtaim_task(test_dir):
+    data = loadfn(test_dir / "C3H6.json.gz")
+    return TaskDocument(**data[-1])
+
+
+def test_bonding(test_tasks, nbo_task, qtaim_task):
     # No Critic2 or NBO
     ob_mee = MoleculeBondingDoc.from_task(
         test_tasks[0],
@@ -63,3 +69,13 @@ def test_bonding(test_tasks, nbo_task):
     assert len(nbo.bonds) == 11
     assert len(nbo.bonds_nometal) == 9
     assert set(nbo.bond_types.keys()) == {"C-H", "C-O", "C-Li", "Li-O"}
+
+    qtaim = MoleculeBondingDoc.from_task(
+        qtaim_task,
+        molecule_id="b9ba54febc77d2a9177accf4605767db-C1Li2O3-1-2",
+        preferred_methods=["qtaim"],
+    )
+    assert qtaim.method == "qtaim"
+    assert len(qtaim.bonds) == 8
+    assert len(qtaim.bonds_nometal) == 8
+    assert set(qtaim.bond_types.keys()) == {"C-H", "C-C"}

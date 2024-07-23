@@ -1,4 +1,4 @@
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 import copy
 from hashlib import blake2b
 
@@ -67,7 +67,7 @@ metals = [
     "Bi",
 ]
 
-BOND_METHODS = ["nbo", "critic2", "OpenBabelNN + metal_edge_extender"]
+BOND_METHODS = ["nbo", "critic2", "OpenBabelNN + metal_edge_extender", "qtaim"]
 
 
 def fix_C_Li_bonds(critic: Dict) -> Dict:
@@ -410,6 +410,18 @@ class MoleculeBondingDoc(PropertyDoc):
                 mg, warnings = nbo_molecule_graph(mol, task.output.nbo)
                 mg_made = True
 
+            elif m == "qtaim" and task.output.qtaim is not None:
+                method = "qtaim"
+                bonds = set()
+                for cp_desc in task.output.qtaim["bond"].values():
+                    bonds.add(tuple(sorted(cp_desc["atom_inds"])))
+
+                mg = MoleculeGraph.from_edges(
+                    mol,
+                    {bond: None for bond in bonds}
+                )
+                mg_made = True
+                
             elif m == "critic2" and task.critic2 is not None:
                 method = "critic2"
                 critic = fix_C_Li_bonds(task.critic2)
