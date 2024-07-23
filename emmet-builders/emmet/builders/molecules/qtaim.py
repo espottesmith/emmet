@@ -10,7 +10,7 @@ from maggma.utils import grouper
 
 from emmet.core.qchem.task import TaskDocument
 from emmet.core.qchem.molecule import MoleculeDoc, evaluate_lot
-from emmet.core.molecules.orbitals import OrbitalDoc
+from emmet.core.molecules.qtaim import QTAIMDoc
 from emmet.core.utils import jsanitize
 from emmet.builders.settings import EmmetBuildSettings
 
@@ -20,40 +20,39 @@ __author__ = "Evan Spotte-Smith"
 SETTINGS = EmmetBuildSettings()
 
 
-class OrbitalBuilder(Builder):
+class QTAIMBuilder(Builder):
     """
-    The OrbitalBuilder extracts the highest-quality natural bonding orbital data
-    from a MoleculeDoc (lowest electronic energy, highest level of theory for
-    each solvent available).
+    The QTAIMBuilder extracts the highest-quality quantum theory of atoms in molecules (QTAIM) data
+    from a MoleculeDoc (lowest electronic energy, highest level of theory for each solvent available).
 
     The process is as follows:
         1. Gather MoleculeDocs by species hash
         2. For each doc, sort tasks by solvent
-        3. For each solvent, grab the best TaskDoc (including NBO data using
+        3. For each solvent, grab the best TaskDoc (including QTAIM data using
             the highest level of theory with lowest electronic energy for the
             molecule)
-        4. Convert TaskDoc to OrbitalDoc
+        4. Convert TaskDoc to QTAIMDoc
     """
 
     def __init__(
         self,
         tasks: Store,
         molecules: Store,
-        orbitals: Store,
+        qtaim: Store,
         query: Optional[Dict] = None,
         settings: Optional[EmmetBuildSettings] = None,
         **kwargs,
     ):
         self.tasks = tasks
         self.molecules = molecules
-        self.orbitals = orbitals
+        self.qtaim = qtaim
         self.query = query if query else dict()
         self.settings = EmmetBuildSettings.autoload(settings)
         self.kwargs = kwargs
 
-        super().__init__(sources=[tasks, molecules], targets=[orbitals], **kwargs)
+        super().__init__(sources=[tasks, molecules], targets=[qtaim], **kwargs)
         # Uncomment in case of issue with mrun not connecting automatically to collections
-        # for i in [self.tasks, self.molecules, self.orbitals]:
+        # for i in [self.tasks, self.molecules, self.qtaim]:
         #     try:
         #         i.connect()
         #     except Exception as e:
@@ -78,14 +77,14 @@ class OrbitalBuilder(Builder):
         self.molecules.ensure_index("formula_alphabetical")
         self.molecules.ensure_index("species_hash")
 
-        # Search index for orbitals
-        self.orbitals.ensure_index("molecule_id")
-        self.orbitals.ensure_index("task_id")
-        self.orbitals.ensure_index("solvent")
-        self.orbitals.ensure_index("lot_solvent")
-        self.orbitals.ensure_index("property_id")
-        self.orbitals.ensure_index("last_updated")
-        self.orbitals.ensure_index("formula_alphabetical")
+        # Search index for qtaim
+        self.qtaim.ensure_index("molecule_id")
+        self.qtaim.ensure_index("task_id")
+        self.qtaim.ensure_index("solvent")
+        self.qtaim.ensure_index("lot_solvent")
+        self.qtaim.ensure_index("property_id")
+        self.qtaim.ensure_index("last_updated")
+        self.qtaim.ensure_index("formula_alphabetical")
 
     def prechunk(self, number_splits: int) -> Iterable[Dict]:  # pragma: no cover
         """Prechunk the builder for distributed computation"""
@@ -98,7 +97,7 @@ class OrbitalBuilder(Builder):
             self.molecules.query(temp_query, [self.molecules.key, "species_hash"])
         )
 
-        processed_docs = set([e for e in self.orbitals.distinct("molecule_id")])
+        processed_docs = set([e for e in self.qtaim.distinct("molecule_id")])
         to_process_docs = {d[self.molecules.key] for d in all_mols} - processed_docs
         to_process_hashes = {
             d["species_hash"]
@@ -113,15 +112,15 @@ class OrbitalBuilder(Builder):
 
     def get_items(self) -> Iterator[List[Dict]]:
         """
-        Gets all items to process into orbital documents.
+        Gets all items to process into QTAIM documents.
         This does no datetime checking; relying on on whether
-        task_ids are included in the orbitals Store
+        task_ids are included in the QTAIM Store
 
         Returns:
             generator or list relevant tasks and molecules to process into documents
         """
 
-        self.logger.info("Orbital builder started")
+        self.logger.info("QTAIM builder started")
         self.logger.info("Setting indexes")
         self.ensure_indexes()
 
@@ -137,7 +136,7 @@ class OrbitalBuilder(Builder):
             self.molecules.query(temp_query, [self.molecules.key, "species_hash"])
         )
 
-        processed_docs = set([e for e in self.orbitals.distinct("molecule_id")])
+        processed_docs = set([e for e in self.qtaim.distinct("molecule_id")])
         to_process_docs = {d[self.molecules.key] for d in all_mols} - processed_docs
         to_process_hashes = {
             d["species_hash"]
@@ -160,13 +159,13 @@ class OrbitalBuilder(Builder):
 
     def process_item(self, items: List[Dict]) -> List[Dict]:
         """
-        Process the tasks into a OrbitalDocs
+        Process the tasks into a QTAIMDocs
 
         Args:
             tasks List[Dict] : a list of MoleculeDocs in dict form
 
         Returns:
-            [dict] : a list of new orbital docs
+            [dict] : a list of new QTAIM docs
         """
 
         mols = [MoleculeDoc(**item) for item in items]
@@ -174,7 +173,7 @@ class OrbitalBuilder(Builder):
         mol_ids = [m.molecule_id for m in mols]
         self.logger.info(f"Processing {shash} : {mol_ids}")
 
-        orbital_docs = list()
+        qtaim_docs = list()
 
         for mol in mols:
             correct_charge_spin = [
@@ -184,24 +183,20 @@ class OrbitalBuilder(Builder):
                 and e["spin_multiplicity"] == mol.spin_multiplicity
             ]
 
-            # Must have NBO, and must specifically use NBO7
-            orbital_entries = [
+            # Must have QTAIM
+            qtaim_entries = [
                 e
                 for e in correct_charge_spin
-                if e["output"].get("nbo") is not None
-                and (
-                    e["orig"]["rem"].get("run_nbo6", False)
-                    or e["orig"]["rem"].get("nbo_external", False)
-                )
+                if e["output"].get("qtaim") is not None
             ]
 
             # Organize by solvent environment
             by_solvent = defaultdict(list)
-            for entry in orbital_entries:
+            for entry in qtaim_entries:
                 by_solvent[entry["solvent"]].append(entry)
 
             for solvent, entries in by_solvent.items():
-                # No documents with NBO data; no documents to be made
+                # No documents with QTAIM data; no documents to be made
                 if len(entries) == 0:
                     continue
                 else:
@@ -244,20 +239,20 @@ class OrbitalBuilder(Builder):
                         if task_doc is None:
                             continue
 
-                        orbital_doc = OrbitalDoc.from_task(
+                        qtaim_doc = QTAIMDoc.from_task(
                             task_doc, molecule_id=mol.molecule_id, deprecated=False
                         )
 
-                        if orbital_doc is not None:
-                            orbital_docs.append(orbital_doc)
+                        if qtaim_doc is not None:
+                            qtaim_docs.append(qtaim_doc)
 
-        self.logger.debug(f"Produced {len(orbital_docs)} orbital docs for {shash}")
+        self.logger.debug(f"Produced {len(qtaim_docs)} QTAIM docs for {shash}")
 
-        return jsanitize([doc.model_dump() for doc in orbital_docs], allow_bson=True)
+        return jsanitize([doc.model_dump() for doc in qtaim_docs], allow_bson=True)
 
     def update_targets(self, items: List[List[Dict]]):
         """
-        Inserts the new documents into the orbitals collection
+        Inserts the new documents into the qtaim collection
 
         Args:
             items [[dict]]: A list of documents to update
@@ -276,9 +271,9 @@ class OrbitalBuilder(Builder):
         molecule_ids = list({item["molecule_id"] for item in docs})
 
         if len(items) > 0:
-            self.logger.info(f"Updating {len(docs)} orbital documents")
-            self.orbitals.remove_docs({self.orbitals.key: {"$in": molecule_ids}})
-            self.orbitals.update(
+            self.logger.info(f"Updating {len(docs)} QTAIM documents")
+            self.qtaim.remove_docs({self.qtaim.key: {"$in": molecule_ids}})
+            self.qtaim.update(
                 docs=docs,
                 key=["molecule_id", "solvent"],
             )
