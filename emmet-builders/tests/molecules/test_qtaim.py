@@ -14,16 +14,12 @@ def tasks_store(test_dir):
 
 
 @pytest.fixture(scope="session")
-def mol_store(tasks_store):
+def assoc_store(tasks_store):
     assoc_store = MemoryStore(key="molecule_id")
     stage_one = MoleculesAssociationBuilder(tasks=tasks_store, assoc=assoc_store)
     stage_one.run()
 
-    mol_store = MemoryStore(key="molecule_id")
-    stage_two = MoleculesBuilder(assoc=assoc_store, molecules=mol_store)
-    stage_two.run()
-
-    return mol_store
+    return assoc_store
 
 
 @pytest.fixture(scope="session")
@@ -31,9 +27,9 @@ def qtaim_store():
     return MemoryStore()
 
 
-def test_qtaim_builder(tasks_store, mol_store, qtaim_store):
-    builder = QTAIMBuilder(tasks_store, mol_store, qtaim_store)
+def test_qtaim_builder(tasks_store, assoc_store, qtaim_store):
+    builder = QTAIMBuilder(tasks_store, assoc_store, qtaim_store)
     builder.run()
 
-    assert qtaim_store.count() == 20
+    assert qtaim_store.count() == 8
     assert qtaim_store.count({"deprecated": True}) == 0

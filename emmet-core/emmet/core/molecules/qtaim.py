@@ -90,6 +90,8 @@ class CriticalPoint(MSONable):
             this CP
         :param bond_names (Optional[List[str]]): For ring and cage CPs, the names of the bond CPs surrounding this CP
         :param ring_names (Optional[List[str]]): For cage CPs, the names of the ring CPs surrounding this CP
+        :param connected_bond_paths (Optional[List[int]]): For bond CPs, the atoms that QTAIM believes are bound by this
+            bond
         """
         
         self.name = name
@@ -118,6 +120,7 @@ class CriticalPoint(MSONable):
         self.atom_indices = atom_indices
         self.bond_names = bond_names
         self.ring_names = ring_names
+        self.connected_bond_paths = connected_bond_paths
 
 
 class QTAIMDoc(PropertyDoc):
