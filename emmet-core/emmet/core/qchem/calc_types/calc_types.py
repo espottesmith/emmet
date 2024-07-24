@@ -79,6 +79,8 @@ FUNCTIONALS = [
 ]
 
 BASIS_SETS = [
+    "6-31g",
+    "def2-SVP",
     "6-31g*",
     "def2-SVPD",
     "def2-TZVP",

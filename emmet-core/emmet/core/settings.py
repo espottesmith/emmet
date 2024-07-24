@@ -71,6 +71,7 @@ class EmmetSettings(BaseSettings):
             "B3LYP": 4,
             "B97M-V": 3,
             "B97M-rV": 3,
+            "SCAN": 2,
             "B97-D3": 2,
             "B97-D": 2,
             "PBE": 1,
@@ -80,13 +81,15 @@ class EmmetSettings(BaseSettings):
 
     QCHEM_BASIS_QUALITY_SCORES: Dict[str, int] = Field(
         {
-            "6-31g*": 1,
-            "def2-SVPD": 2,
-            "def2-TZVP": 3,
-            "def2-TZVPD": 4,
-            "def2-TZVPP": 5,
-            "def2-TZVPPD": 6,
-            "def2-QZVPPD": 7,
+            "6-31g": 1,
+            "def2-SVP": 1,
+            "6-31g*": 2,
+            "def2-SVPD": 3,
+            "def2-TZVP": 4,
+            "def2-TZVPD": 5,
+            "def2-TZVPP": 6,
+            "def2-TZVPPD": 7,
+            "def2-QZVPPD": 9,
         },
         description="Dictionary mapping Q-Chem basis sets to a quality score.",
     )
