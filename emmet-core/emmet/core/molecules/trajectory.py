@@ -202,7 +202,7 @@ class TrajectoryDoc(PropertyDoc):
     )
 
     @property
-    def molecules(self) -> List[Molecule]:
+    def molecules(self) -> List[List[Molecule]]:
         """
         Geometries along the optimization trajectory, represented as pymatgen Molecule objects.
 
@@ -276,7 +276,7 @@ class TrajectoryDoc(PropertyDoc):
                 step_mol = mols[jj]
                 for k, v in site_props.items():  # type: ignore
                     if v is not None:
-                        step_mol.add_site_property(property_name=k, values=v[jj])
+                        step_mol.add_site_property(property_name=k, values=v[jj])  # type: ignore[arg-type]
 
                 traj_mols.append(step_mol)
 
@@ -284,7 +284,7 @@ class TrajectoryDoc(PropertyDoc):
 
             traj = Trajectory.from_molecules(
                 traj_mols, frame_properties=traj_frame_props, time_step=None
-            )
+            )  # type: ignore[arg-type]
             trajectories.append(traj)
 
         return trajectories

@@ -11,6 +11,7 @@ from emmet.api.routes.molecules.molecules.query_operators import (
     ChemsysQuery,
     CompositionElementsQuery,
     ChargeSpinQuery,
+    HashQuery,
     StringRepQuery,
     DeprecationQuery,
 )
@@ -35,6 +36,7 @@ def summary_resource(summary_store):
             HasPropsQuery(),
             ChargeSpinQuery(),
             StringRepQuery(),
+            HashQuery(),
             DeprecationQuery(),
             PaginationQuery(),
             NumericQuery(

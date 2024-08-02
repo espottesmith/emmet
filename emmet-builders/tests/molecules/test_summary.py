@@ -10,7 +10,6 @@ from emmet.builders.molecules.metal_binding import MetalBindingBuilder
 from emmet.builders.molecules.orbitals import OrbitalBuilder
 from emmet.builders.molecules.redox import RedoxBuilder
 from emmet.builders.molecules.thermo import ThermoBuilder
-from emmet.builders.molecules.trajectory import ForcesBuilder
 from emmet.builders.molecules.vibration import VibrationBuilder
 from emmet.builders.molecules.summary import SummaryBuilder
 
@@ -49,11 +48,6 @@ def mols_two(tasks_two):
     stage_two.run()
 
     return mol_store
-
-
-@pytest.fixture(scope="session")
-def forces(test_dir):
-    return MemoryStore(key="molecule_id")
 
 
 @pytest.fixture(scope="session")
@@ -109,7 +103,6 @@ def summary():
 def test_summary_one(
     tasks_one,
     mols_one,
-    forces,
     charges,
     spins,
     bonds,
@@ -121,9 +114,6 @@ def test_summary_one(
     vibes,
     summary,
 ):
-    force_build = ForcesBuilder(tasks_one, mols_one, forces)
-    force_build.run()
-
     charge_build = PartialChargesBuilder(tasks_one, mols_one, charges)
     charge_build.run()
 
@@ -155,7 +145,6 @@ def test_summary_one(
 
     builder = SummaryBuilder(
         molecules=mols_one,
-        forces=forces,
         charges=charges,
         spins=spins,
         bonds=bonds,
@@ -175,7 +164,6 @@ def test_summary_one(
 def test_summary_two(
     tasks_two,
     mols_two,
-    forces,
     charges,
     spins,
     bonds,
@@ -187,9 +175,6 @@ def test_summary_two(
     vibes,
     summary,
 ):
-    force_build = ForcesBuilder(tasks_two, mols_two, forces)
-    force_build.run()
-
     charge_build = PartialChargesBuilder(tasks_two, mols_two, charges)
     charge_build.run()
 
@@ -221,7 +206,6 @@ def test_summary_two(
 
     builder = SummaryBuilder(
         molecules=mols_two,
-        forces=forces,
         charges=charges,
         spins=spins,
         bonds=bonds,
