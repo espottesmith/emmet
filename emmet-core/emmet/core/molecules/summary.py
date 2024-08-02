@@ -27,6 +27,7 @@ class HasProps(Enum):
     metal_binding = "metal_binding"
     multipole_moments = "multipole_moments"
     orbitals = "orbitals"
+    qtaim = "qtaim"
     partial_charges = "partial_charges"
     partial_spins = "partial_spins"
     redox = "redox"
@@ -106,6 +107,22 @@ class OrbitalComposite(BaseModel):
 
     open_shell: Optional[bool] = Field(
         None, description="Is this molecule open-shell (spin multiplicity != 1)?"
+    )
+
+
+class QTAIMComposite(BaseModel):
+    """
+    Summary information obtained from QTAIMDocs
+    """
+
+    property_id: Optional[str] = Field(
+        None,
+        description="Property ID for this OrbitalDoc.",
+    )
+
+    level_of_theory: Optional[str] = Field(
+        None,
+        description="Level of theory for this OrbitalDoc.",
     )
 
 
@@ -539,6 +556,7 @@ summary_fields: Dict[str, list] = {
     HasProps.orbitals.value: [
         "open_shell",
     ],
+    HasProps.qtaim.value: [],
     HasProps.partial_charges.value: ["partial_charges"],
     HasProps.partial_spins.value: ["partial_spins"],
     HasProps.bonding.value: ["bond_types", "bonds", "bonds_nometal"],
@@ -584,6 +602,7 @@ def _copy_from_docs(
     metal_binding: Optional[Dict[str, Dict[str, Dict[str, Any]]]] = None,
     multipole_moments: Optional[Dict[str, Dict[str, Any]]] = None,
     orbitals: Optional[Dict[str, Dict[str, Any]]] = None,
+    qtaim: Optional[Dict[str, Dict[str, Any]]] = None,
     redox: Optional[Dict[str, Dict[str, Any]]] = None,
     thermo: Optional[Dict[str, Dict[str, Any]]] = None,
     vibration: Optional[Dict[str, Dict[str, Any]]] = None,
@@ -607,6 +626,7 @@ def _copy_from_docs(
         HasProps.metal_binding.value: (metal_binding, MetalBindingComposite),
         HasProps.multipole_moments.value: (multipole_moments, MultipolesComposite),
         HasProps.orbitals.value: (orbitals, OrbitalComposite),
+        HasProps.qtaim.value: (qtaim, QTAIMComposite),
         HasProps.redox.value: (redox, RedoxComposite),
         HasProps.thermo.value: (thermo, ThermoComposite),
         HasProps.vibration.value: (vibration, VibrationComposite),

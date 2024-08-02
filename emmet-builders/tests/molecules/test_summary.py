@@ -8,6 +8,7 @@ from emmet.builders.molecules.bonds import BondingBuilder
 from emmet.builders.molecules.electric import ElectricMultipoleBuilder
 from emmet.builders.molecules.metal_binding import MetalBindingBuilder
 from emmet.builders.molecules.orbitals import OrbitalBuilder
+from emmet.builders.molecules.qtaim import QTAIMBuilder
 from emmet.builders.molecules.redox import RedoxBuilder
 from emmet.builders.molecules.thermo import ThermoBuilder
 from emmet.builders.molecules.vibration import VibrationBuilder
@@ -81,6 +82,11 @@ def orbitals(test_dir):
 
 
 @pytest.fixture(scope="session")
+def qtaim(test_dir):
+    return MemoryStore(key="molecule_id")
+
+
+@pytest.fixture(scope="session")
 def redox(test_dir):
     return MemoryStore(key="molecule_id")
 
@@ -109,6 +115,7 @@ def test_summary_one(
     multipoles,
     metal_binding,
     orbitals,
+    qtaim,
     redox,
     thermo,
     vibes,
@@ -125,6 +132,9 @@ def test_summary_one(
 
     orb_build = OrbitalBuilder(tasks_one, mols_one, orbitals)
     orb_build.run()
+
+    qtaim_build = QTAIMBuilder(tasks_one, mols_one, qtaim)
+    qtaim_build.run()
 
     multipole_build = ElectricMultipoleBuilder(tasks_one, mols_one, multipoles)
     multipole_build.run()
@@ -151,6 +161,7 @@ def test_summary_one(
         multipoles=multipoles,
         metal_binding=metal_binding,
         orbitals=orbitals,
+        qtaim=qtaim,
         redox=redox,
         thermo=thermo,
         vibes=vibes,
@@ -170,6 +181,7 @@ def test_summary_two(
     multipoles,
     metal_binding,
     orbitals,
+    qtaim,
     redox,
     thermo,
     vibes,
@@ -186,6 +198,9 @@ def test_summary_two(
 
     orb_build = OrbitalBuilder(tasks_two, mols_two, orbitals)
     orb_build.run()
+
+    qtaim_build = QTAIMBuilder(tasks_two, mols_two, qtaim)
+    qtaim_build.run()
 
     multipole_build = ElectricMultipoleBuilder(tasks_two, mols_two, multipoles)
     multipole_build.run()
@@ -212,6 +227,7 @@ def test_summary_two(
         multipoles=multipoles,
         metal_binding=metal_binding,
         orbitals=orbitals,
+        qtaim=qtaim,
         redox=redox,
         thermo=thermo,
         vibes=vibes,

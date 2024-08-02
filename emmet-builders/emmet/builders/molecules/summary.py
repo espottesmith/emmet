@@ -39,6 +39,7 @@ class SummaryBuilder(Builder):
         multipoles: Store,
         metal_binding: Store,
         orbitals: Store,
+        qtaim: Store,
         redox: Store,
         thermo: Store,
         vibes: Store,
@@ -54,6 +55,7 @@ class SummaryBuilder(Builder):
         self.multipoles = multipoles
         self.metal_binding = metal_binding
         self.orbitals = orbitals
+        self.qtaim = qtaim
         self.redox = redox
         self.thermo = thermo
         self.vibes = vibes
@@ -71,6 +73,7 @@ class SummaryBuilder(Builder):
                 multipoles,
                 metal_binding,
                 orbitals,
+                qtaim,
                 redox,
                 thermo,
                 vibes,
@@ -87,6 +90,7 @@ class SummaryBuilder(Builder):
         #     self.multipoles,
         #     self.metal_binding,
         #     self.orbitals,
+        #     self.qtaim,
         #     self.redox,
         #     self.thermo,
         #     self.vibes,
@@ -165,6 +169,15 @@ class SummaryBuilder(Builder):
         self.orbitals.ensure_index("property_id")
         self.orbitals.ensure_index("last_updated")
         self.orbitals.ensure_index("formula_alphabetical")
+
+        # Search index for qtaim
+        self.qtaim.ensure_index("molecule_id")
+        self.qtaim.ensure_index("task_id")
+        self.qtaim.ensure_index("solvent")
+        self.qtaim.ensure_index("lot_solvent")
+        self.qtaim.ensure_index("property_id")
+        self.qtaim.ensure_index("last_updated")
+        self.qtaim.ensure_index("formula_alphabetical")
 
         # Search index for orbitals
         self.redox.ensure_index("molecule_id")
@@ -333,6 +346,9 @@ class SummaryBuilder(Builder):
                 ),
                 "orbitals": _group_docs(
                     list(self.orbitals.query({"molecule_id": mol_id})), False
+                ),
+                "qtaim": _group_docs(
+                    list(self.qtaim.query({"molecule_id": mol_id})), False
                 ),
                 "redox": _group_docs(
                     list(self.redox.query({"molecule_id": mol_id})), False
